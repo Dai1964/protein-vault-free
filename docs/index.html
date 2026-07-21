@@ -243,7 +243,7 @@
 </head>
 <body>
 <div class="preview-banner">
-  FREE PREVIEW — capped at 3 items per bay. <a href="PASTE_YOUR_ETSY_LISTING_URL_HERE">Get the full version on Etsy</a> for unlimited stock.
+  FREE PREVIEW — capped at 3 items per bay, 6 items total. <a href="PASTE_YOUR_ETSY_LISTING_URL_HERE">Get the full version on Etsy</a> for unlimited stock.
 </div>
 <div class="wrap">
   <header>
@@ -332,13 +332,13 @@
 
   <div class="upgrade-cta">
     <h2>Like it?</h2>
-    <p>This free preview caps out at 3 items per bay and 1 unit per item, just enough to try the mechanics. The full version tracks unlimited stock across all 4 locations, with no restrictions.</p>
+    <p>This free preview caps out at 3 items per bay, 6 items total across all locations, and 1 unit per item — just enough to try the mechanics. The full version tracks unlimited stock across all 4 locations, with no restrictions.</p>
     <a class="btn" href="PASTE_YOUR_ETSY_LISTING_URL_HERE">Get the Full Version on Etsy</a>
   </div>
 
   <footer>
     <p>Click a plate to open a location. Hit "Use" on an item to log it as consumed — it moves onto the Shopping List for restocking.<br>
-    This free preview caps CSV uploads at 3 distinct items per bay and forces quantity to 1 per item, so you can try the mechanics without it doubling as a full inventory tool. Leave protein blank and it's estimated per item from the food name (shown with a dashed border and a "~") — fill it in for an exact number instead. Inventory and the shopping list are remembered on this device between visits.</p>
+    This free preview caps CSV uploads at 3 distinct items per bay, 6 items total across all locations, and forces quantity to 1 per item, so you can try the mechanics without it doubling as a full inventory tool. Leave protein blank and it's estimated per item from the food name (shown with a dashed border and a "~") — fill it in for an exact number instead. Inventory and the shopping list are remembered on this device between visits.</p>
   </footer>
 </div>
 
@@ -469,24 +469,26 @@ function estimateProtein(food){
    demo from doubling as a usable full inventory tool.
 --------------------------------------------------------- */
 const MAX_ITEMS_PER_BAY = 3;
+// a per-bay cap alone lets someone max out all 4 locations (12 items
+// total) and use that as a genuinely real, permanent inventory rather
+// than a taste — this second, whole-app ceiling closes that gap while
+// still letting any single bay be explored at its full per-bay cap.
+const MAX_ITEMS_TOTAL = 6;
 
 /* ---------------------------------------------------------
    INVENTORY DATA — starts pre-filled at the preview cap (3 per
    location) so the demo is immediately explorable.
 --------------------------------------------------------- */
+// only 6 items total (not the full 3-per-bay, 12-total ceiling) so the
+// starting demo itself respects MAX_ITEMS_TOTAL — still touches all 4
+// locations, and keeps at least one genuinely "Use Soon" item.
 const DEFAULT_INVENTORY = [
   {food:'Chicken Breast', date:daysAgo(54), qty:1, protein:32, location:1},
   {food:'Lean Beef Mince', date:daysAgo(33), qty:1, protein:26, location:1},
-  {food:'Turkey Mince', date:daysAgo(41), qty:1, protein:28, location:1},
   {food:'Salmon Fillets', date:daysAgo(28), qty:1, protein:34, location:2},
-  {food:'Tuna Steaks', date:daysAgo(24), qty:1, protein:30, location:2},
   {food:'Egg Whites Carton', date:daysAgo(49), qty:1, protein:16, location:2},
-  {food:'Cottage Cheese Tub', date:daysAgo(39), qty:1, protein:24, location:3},
   {food:'Greek Yogurt Tub', date:daysAgo(9), qty:1, protein:20, location:3},
-  {food:'Protein Shake Bottles', date:daysAgo(18), qty:1, protein:25, location:3},
   {food:'Fresh Eggs', date:daysAgo(5), qty:1, protein:6, location:4},
-  {food:'Skyr Yogurt Tub', date:daysAgo(2), qty:1, protein:19, location:4},
-  {food:'Chicken Breast (fresh)', date:daysAgo(1), qty:1, protein:32, location:4},
 ];
 
 let inventoryData = [];
@@ -946,8 +948,12 @@ function handleCSV(text, fileName){
         restocked++;
         return;
       }
-      const currentCount = inventoryData.filter(i=> i.location === item.location).length;
-      if(currentCount >= MAX_ITEMS_PER_BAY){
+      const bayCount = inventoryData.filter(i=> i.location === item.location).length;
+      if(bayCount >= MAX_ITEMS_PER_BAY){
+        blocked++;
+        return;
+      }
+      if(inventoryData.length >= MAX_ITEMS_TOTAL){
         blocked++;
         return;
       }
@@ -960,7 +966,7 @@ function handleCSV(text, fileName){
     const parts = [];
     if(added) parts.push(`${added} new item${added===1?'':'s'} added`);
     if(restocked) parts.push(`${restocked} already tracked`);
-    if(blocked) parts.push(`${blocked} skipped — free preview caps out at ${MAX_ITEMS_PER_BAY} items per bay`);
+    if(blocked) parts.push(`${blocked} skipped — free preview caps out at ${MAX_ITEMS_PER_BAY} per bay, ${MAX_ITEMS_TOTAL} total`);
     setStatus(`${parts.join(', ')} from ${fileName}`, blocked > 0 && added === 0);
     if(blocked > 0 && added === 0){
       playError();
