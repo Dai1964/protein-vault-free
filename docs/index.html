@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏋️ Protein Vault — Free Preview</title>
+<style>
+  :root{
+    --ground-1:#141414;
+    --ground-2:#1f1f1f;
+    --panel:#242424;
+    --panel-edge:#3a3a3a;
+    --steel:#8a97a3;
+    --accent:#ff5a1f;
+    --accent-dim:#c94716;
+    --danger:#e63946;
+    --text-light:#f2f0ec;
+    --text-dim:#9a9a9a;
+    --font-display:'Arial Black','Arial Narrow',Arial,sans-serif;
+    --font-body:'Segoe UI',Verdana,Tahoma,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    font-family:var(--font-body);
+    color:var(--text-light);
+    background:
+      repeating-linear-gradient(135deg, rgba(255,255,255,.015) 0 2px, transparent 2px 40px),
+      linear-gradient(180deg,var(--ground-1),var(--ground-2));
+  }
+  .wrap{max-width:1200px;margin:0 auto;padding:1.5rem 1.25rem 4rem;}
+
+  .preview-banner{
+    background:var(--accent);color:#141414;text-align:center;
+    padding:.7rem 1rem;font-weight:800;font-size:.85rem;
+    letter-spacing:.02em;
+  }
+  .preview-banner a{color:#141414;text-decoration:underline;font-weight:900;}
+
+  header{text-align:center;padding:1.75rem 0 1rem;border-bottom:3px solid var(--accent);margin-bottom:1.5rem;}
+  h1{
+    font-family:var(--font-display);
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    font-size:clamp(1.9rem,5vw,3.1rem);
+    margin:0;
+    color:var(--text-light);
+    text-shadow:2px 2px 0 var(--accent-dim);
+  }
+  header p.sub{margin:.6rem 0 0;color:var(--steel);font-size:.95rem;letter-spacing:.02em;}
+
+  .toolbar{
+    display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;justify-content:center;
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    padding:.9rem 1.1rem;
+    margin:1.25rem 0;
+  }
+  .btn{
+    display:inline-flex;align-items:center;gap:.5rem;
+    border:none;
+    padding:.7rem 1.2rem;
+    font-family:var(--font-display);
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    font-size:.85rem;
+    cursor:pointer;
+    min-height:44px;
+    transition:filter .1s ease,transform .1s ease;
+    color:#141414;
+    background:var(--accent);
+    clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);
+  }
+  .btn:hover{filter:brightness(1.15);}
+  .btn:active{transform:translateY(1px);}
+  .btn.secondary{background:var(--steel);}
+  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .btn:disabled{opacity:.4;cursor:not-allowed;filter:none;}
+  #fileInput{display:none;}
+  .status-badge{
+    display:inline-flex;align-items:center;gap:.5rem;
+    background:var(--ground-1);
+    border:1px solid var(--panel-edge);
+    padding:.5rem 1rem;
+    font-size:.82rem;font-weight:600;
+  }
+  .status-badge .dot{width:8px;height:8px;border-radius:50%;background:#4caf50;}
+  .status-badge.error .dot{background:var(--danger);}
+  .status-badge.error{color:var(--danger);}
+  .search-field{
+    display:flex;align-items:center;gap:.5rem;
+    background:var(--ground-1);
+    border:1px solid var(--panel-edge);
+    padding:.55rem 1rem;
+    min-width:200px;
+  }
+  .search-field input{
+    background:none;border:none;outline:none;color:var(--text-light);
+    font-size:.88rem;width:100%;
+  }
+  .search-field input::placeholder{color:var(--text-dim);}
+
+  .bay-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:1.25rem;
+    margin-top:1rem;
+  }
+  @media(max-width:1100px){.bay-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:640px){.bay-grid{grid-template-columns:1fr;}}
+
+  .bay{
+    background:linear-gradient(180deg,#2a2a2a,#1c1c1c);
+    border:1px solid var(--panel-edge);
+    border-top:5px solid var(--accent);
+    box-shadow:0 10px 24px rgba(0,0,0,.5);
+  }
+  .bay-header{
+    cursor:pointer;
+    padding:1.25rem 1rem 1rem;
+    text-align:center;
+    user-select:none;
+    background:none;border:none;width:100%;color:inherit;font-family:inherit;
+  }
+  .plate{
+    width:110px;height:110px;margin:0 auto;
+    cursor:pointer;transition:transform .15s ease;
+  }
+  .plate:hover{transform:scale(1.06);}
+  .bay-title{
+    margin:.9rem 0 0;font-family:var(--font-display);text-transform:uppercase;
+    letter-spacing:.04em;font-size:1.05rem;
+  }
+  .bay-quote{
+    font-size:.78rem;font-style:italic;color:var(--steel);
+    margin:.4rem 0 .6rem;padding:0 .5rem;line-height:1.4;
+  }
+  .count-badge{
+    display:inline-block;background:var(--ground-1);border:1px solid var(--panel-edge);color:var(--accent);
+    padding:.2rem .7rem;font-size:.75rem;font-weight:700;font-variant-numeric:tabular-nums;
+  }
+  .expand-hint{font-size:.7rem;opacity:.55;margin-top:.5rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;}
+  .expand-hint .chev{display:inline-block;transition:transform .3s ease;}
+  .bay.expanded .expand-hint .chev{transform:rotate(180deg);}
+
+  .body-wrapper{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease;}
+  .bay.expanded .body-wrapper{grid-template-rows:1fr;}
+  .body-inner{overflow:hidden;}
+  .bay-body{
+    padding:0 1rem 1.1rem;
+    display:flex;flex-direction:column;gap:.5rem;
+    max-height:260px;overflow-y:auto;
+  }
+  .inv-item{
+    display:flex;align-items:center;gap:.5rem;
+    background:rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.06);
+    padding:.5rem .6rem;
+    font-size:.85rem;
+  }
+  .inv-item:hover{background:rgba(255,255,255,.07);}
+  .inv-food{flex:1;font-weight:600;text-align:left;}
+  .inv-date{background:rgba(255,255,255,.06);color:var(--text-dim);padding:.15rem .5rem;font-size:.68rem;font-variant-numeric:tabular-nums;}
+  .inv-protein{background:var(--accent-dim);color:#fff;padding:.15rem .5rem;font-size:.7rem;font-weight:700;font-variant-numeric:tabular-nums;}
+  .inv-protein.estimated{background:transparent;color:var(--accent-dim);border:1px dashed var(--accent-dim);cursor:help;}
+  .inv-qty{background:var(--panel-edge);color:var(--text-light);padding:.15rem .5rem;font-size:.7rem;font-weight:700;font-variant-numeric:tabular-nums;}
+  .use-btn{
+    border:none;background:var(--accent);color:#141414;
+    font-family:var(--font-display);text-transform:uppercase;letter-spacing:.03em;
+    font-size:.68rem;font-weight:900;padding:.35rem .6rem;cursor:pointer;
+    min-height:32px;flex-shrink:0;
+  }
+  .use-btn:hover{filter:brightness(1.15);}
+  .use-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .fresh-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .fresh-dot.fresh{background:#4caf50;}
+  .fresh-dot.aging{background:#ffc857;}
+  .fresh-dot.stale{background:var(--danger);}
+  .empty-note{font-size:.8rem;opacity:.6;text-align:center;padding:.75rem 0;color:var(--text-dim);}
+
+  .builder{
+    margin-top:2.5rem;
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    border-left:5px solid var(--accent);
+    padding:1.75rem;
+  }
+  .builder h2{margin:0 0 .3rem;font-family:var(--font-display);text-transform:uppercase;letter-spacing:.04em;font-size:1.4rem;text-align:center;}
+  .builder p.hint{text-align:center;margin:0 0 1.25rem;color:var(--steel);font-size:.9rem;}
+  .planner-controls{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;align-items:flex-end;}
+  .field{display:flex;flex-direction:column;gap:.35rem;min-width:180px;}
+  .field label{font-size:.7rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;}
+  .field select{
+    appearance:none;
+    padding:.7rem 2.2rem .7rem .9rem;
+    border:1px solid var(--panel-edge);
+    background-color:var(--ground-1);
+    background-image:linear-gradient(45deg,transparent 50%,var(--accent) 50%),linear-gradient(135deg,var(--accent) 50%,transparent 50%);
+    background-position:calc(100% - 16px) calc(50% - 3px),calc(100% - 11px) calc(50% - 3px);
+    background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+    font-size:.9rem;font-weight:600;color:var(--text-light);
+    min-height:44px;cursor:pointer;
+  }
+  #buildMealBtn{min-width:200px;justify-content:center;font-size:.92rem;}
+
+  .meal-output{
+    margin-top:1.75rem;max-width:520px;margin-left:auto;margin-right:auto;
+    background:var(--ground-1);border:1px solid var(--panel-edge);border-top:4px solid var(--accent);
+    padding:1.5rem;text-align:center;opacity:0;transform:translateY(12px);display:none;
+  }
+  .meal-output.show{display:block;animation:fadeInUp .4s ease forwards;}
+  @keyframes fadeInUp{to{opacity:1;transform:translateY(0);}}
+  .meal-output h3{margin:0 0 .75rem;font-family:var(--font-display);text-transform:uppercase;letter-spacing:.04em;font-size:1rem;}
+  .meal-items{list-style:none;padding:0;margin:0 0 1rem;display:flex;flex-direction:column;gap:.4rem;}
+  .meal-items li{background:rgba(255,255,255,.05);padding:.5rem .75rem;font-weight:600;font-size:.92rem;display:flex;justify-content:space-between;}
+  .meal-items li span.p{color:var(--accent);font-weight:800;}
+  .meal-items li span.qty-hint{color:var(--steel);font-weight:600;font-size:.82rem;font-variant-numeric:tabular-nums;}
+  .meal-meta{display:flex;justify-content:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.6rem;}
+  .meal-meta span{background:var(--accent);color:#141414;padding:.25rem .7rem;font-size:.72rem;font-weight:800;text-transform:uppercase;}
+  .meal-flavor{font-size:.85rem;color:var(--steel);font-style:italic;margin:0;}
+  .shortfall{display:block;margin-top:.5rem;color:var(--accent);font-style:normal;font-weight:700;font-size:.8rem;}
+
+  .upgrade-cta{
+    margin-top:2.5rem;text-align:center;background:var(--panel);border:1px solid var(--panel-edge);
+    border-top:5px solid var(--accent);padding:2rem 1.5rem;
+  }
+  .upgrade-cta h2{margin:0 0 .5rem;font-family:var(--font-display);text-transform:uppercase;letter-spacing:.04em;font-size:1.3rem;}
+  .upgrade-cta p{margin:0 0 1.25rem;color:var(--steel);font-size:.92rem;max-width:520px;margin-left:auto;margin-right:auto;}
+  .upgrade-cta a.btn{text-decoration:none;display:inline-flex;}
+
+  footer{text-align:center;margin-top:2.5rem;font-size:.8rem;color:var(--text-dim);line-height:1.6;}
+
+  @media(max-width:640px){
+    .planner-controls{flex-direction:column;align-items:stretch;}
+    .field{min-width:0;}
+    #buildMealBtn{width:100%;}
+    .toolbar{flex-direction:column;align-items:stretch;}
+    .btn{justify-content:center;}
+    .search-field{min-width:0;}
+  }
+</style>
+</head>
+<body>
+<div class="preview-banner">
+  FREE PREVIEW — capped at 3 items per bay. <a href="PASTE_YOUR_ETSY_LISTING_URL_HERE">Get the full version on Etsy</a> for unlimited stock.
+</div>
+<div class="wrap">
+  <header>
+    <h1>🏋️ Protein Vault</h1>
+    <p class="sub">Fuel the grind. Track your protein. No excuses.</p>
+  </header>
+
+  <div class="toolbar">
+    <button class="btn" id="uploadBtn">Add Stock (CSV)</button>
+    <input type="file" id="fileInput" accept=".csv">
+    <button class="btn secondary" id="downloadBtn">Template</button>
+    <button class="btn secondary" id="exportInventoryBtn">Export Inventory</button>
+    <span class="status-badge" id="statusBadge"><span class="dot"></span><span id="statusText">Racked and ready</span></span>
+    <span class="status-badge" id="proteinBadge"><span class="dot"></span><span id="proteinBadgeText">Today: 0g protein</span></span>
+    <label class="search-field">
+      <input type="text" id="searchInput" placeholder="Search inventory...">
+    </label>
+  </div>
+
+  <div class="bay-grid" id="bayGrid"></div>
+
+  <section class="builder">
+    <h2>Meal Builder</h2>
+    <p class="hint">Pick a bay and a goal — we'll stack the highest-protein items on hand.</p>
+    <div class="planner-controls">
+      <div class="field">
+        <label for="baySelect">Location</label>
+        <select id="baySelect">
+          <option value="1">Bay 1 — Power</option>
+          <option value="2">Bay 2 — Discipline</option>
+          <option value="3">Bay 3 — Recovery</option>
+          <option value="4">Fridge</option>
+          <option value="all" selected>All Locations</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="goalSelect">Goal</label>
+        <select id="goalSelect">
+          <option>Bulk</option>
+          <option selected>Maintain</option>
+          <option>Cut</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="servingsSelect">Servings</label>
+        <select id="servingsSelect">
+          <option value="1">1</option>
+          <option value="2" selected>2</option>
+          <option value="4">4</option>
+        </select>
+      </div>
+      <button class="btn" id="buildMealBtn">Build Meal</button>
+    </div>
+
+    <div class="meal-output" id="mealOutput">
+      <h3>Stack</h3>
+      <ul class="meal-items" id="mealItems"></ul>
+      <div class="meal-meta" id="mealMeta"></div>
+      <p class="meal-flavor" id="mealFlavor"></p>
+    </div>
+  </section>
+
+  <section class="builder">
+    <h2>Use Soon</h2>
+    <p class="hint">Items logged in over 45 days ago — a proxy for "getting old", not a strict expiry date.</p>
+    <div id="expiryBody" class="bay-body" style="max-height:none;"></div>
+    <div style="text-align:center;margin-top:1.25rem;">
+      <button class="btn secondary" id="expiryMealBtn">Suggest a Meal From These</button>
+    </div>
+  </section>
+
+  <section class="builder">
+    <h2>Shopping List</h2>
+    <p class="hint">Hit "Use" on an item as you cook with it — it's remembered here for restocking, even after you close this page.</p>
+    <div id="shoppingListBody" class="bay-body" style="max-height:none;"></div>
+    <div style="text-align:center;margin-top:1.25rem;">
+      <button class="btn secondary" id="exportShoppingBtn">Export List (CSV)</button>
+    </div>
+  </section>
+
+  <section class="builder">
+    <h2>Protein Log</h2>
+    <p class="hint">Logged automatically every time you hit "Use" — last 7 days.</p>
+    <div id="proteinLogBody" class="bay-body" style="max-height:none;"></div>
+  </section>
+
+  <div class="upgrade-cta">
+    <h2>Like it?</h2>
+    <p>This free preview caps out at 3 items per bay and 1 unit per item, just enough to try the mechanics. The full version tracks unlimited stock across all 4 locations, with no restrictions.</p>
+    <a class="btn" href="PASTE_YOUR_ETSY_LISTING_URL_HERE">Get the Full Version on Etsy</a>
+  </div>
+
+  <footer>
+    <p>Click a plate to open a location. Hit "Use" on an item to log it as consumed — it moves onto the Shopping List for restocking.<br>
+    This free preview caps CSV uploads at 3 distinct items per bay and forces quantity to 1 per item, so you can try the mechanics without it doubling as a full inventory tool. Leave protein blank and it's estimated per item from the food name (shown with a dashed border and a "~") — fill it in for an exact number instead. Inventory and the shopping list are remembered on this device between visits.</p>
+  </footer>
+</div>
+
+<script>
+/* ---------------------------------------------------------
+   AUDIO — synthesized metal clank (no sampled audio)
+--------------------------------------------------------- */
+let audioCtx = null;
+function getCtx(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function playClank(){
+  const ctx = getCtx();
+  const t = ctx.currentTime;
+
+  // metallic transient: short filtered noise burst
+  const bufferSize = ctx.sampleRate * 0.15;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for(let i=0;i<bufferSize;i++){
+    data[i] = (Math.random()*2-1) * Math.pow(1 - i/bufferSize, 3);
+  }
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  const bandpass = ctx.createBiquadFilter();
+  bandpass.type = 'bandpass';
+  bandpass.frequency.setValueAtTime(1800, t);
+  bandpass.Q.value = 1.2;
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.5, t);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, t+0.15);
+  noise.connect(bandpass).connect(noiseGain).connect(ctx.destination);
+  noise.start(t);
+
+  // two detuned metallic ring tones
+  [215, 340].forEach((freq, i)=>{
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(freq, t);
+    osc.frequency.exponentialRampToValueAtTime(freq*0.6, t+0.3);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(0.18 - i*0.05, t+0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t+0.35);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t); osc.stop(t+0.4);
+  });
+}
+function playConfirm(){
+  const ctx = getCtx(); const t = ctx.currentTime;
+  [440,660].forEach((f,i)=>{
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.type='square'; osc.frequency.setValueAtTime(f, t+i*0.07);
+    gain.gain.setValueAtTime(0.0001, t+i*0.07);
+    gain.gain.exponentialRampToValueAtTime(0.16, t+i*0.07+0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t+i*0.07+0.14);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t+i*0.07); osc.stop(t+i*0.07+0.16);
+  });
+}
+function playError(){
+  const ctx = getCtx(); const t = ctx.currentTime;
+  const osc = ctx.createOscillator(); const gain = ctx.createGain();
+  osc.type='sawtooth'; osc.frequency.setValueAtTime(180, t);
+  osc.frequency.exponentialRampToValueAtTime(90, t+0.25);
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(0.2, t+0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t+0.3);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(t); osc.stop(t+0.32);
+}
+
+/* ---------------------------------------------------------
+   PROTEIN ESTIMATOR — most people uploading a food list won't
+   know (or want to look up) grams of protein per item. If the
+   CSV leaves the protein column blank, estimate it from the
+   food name instead of forcing them to find the number. Rough
+   ballpark PER SINGLE UNIT, not a nutrition label — always
+   overridable by putting a real number in the CSV.
+--------------------------------------------------------- */
+const PROTEIN_ESTIMATES = [
+  [/egg white/i, 16],
+  [/\begg/i, 6],
+  [/chicken|poultry/i, 32],
+  [/turkey/i, 28],
+  [/salmon/i, 34],
+  [/tuna/i, 30],
+  [/shrimp|prawn/i, 24],
+  [/fish|cod|haddock|tilapia/i, 28],
+  [/beef|steak/i, 28],
+  [/pork|bacon|ham/i, 25],
+  [/lamb/i, 27],
+  [/duck/i, 27],
+  [/venison/i, 28],
+  [/mince/i, 26],
+  [/cottage cheese/i, 24],
+  [/greek yog?hurt/i, 20],
+  [/skyr/i, 19],
+  [/quark/i, 12],
+  [/ricotta/i, 14],
+  [/yog?hurt/i, 15],
+  [/protein shake|protein powder|whey/i, 25],
+  [/protein bar/i, 20],
+  [/tofu|tempeh/i, 18],
+  [/seitan/i, 25],
+  [/edamame/i, 11],
+  [/lentil|chickpea|bean/i, 16],
+  [/cheese/i, 20],
+  [/milk/i, 8],
+];
+
+function estimateProtein(food){
+  const f = String(food).toLowerCase();
+  for(const [pattern, grams] of PROTEIN_ESTIMATES){
+    if(pattern.test(f)) return grams;
+  }
+  return 12; // generic fallback so an unmatched item shows a plausible
+             // ballpark instead of an alarming "0g"
+}
+
+/* ---------------------------------------------------------
+   FREE PREVIEW LIMITS — the only real difference from the full
+   version. Enforced client-side (this is a static file, there's
+   no server to enforce anything harder) — the point isn't to
+   stop a determined tinkerer, it's to keep a casual visitor's
+   demo from doubling as a usable full inventory tool.
+--------------------------------------------------------- */
+const MAX_ITEMS_PER_BAY = 3;
+
+/* ---------------------------------------------------------
+   INVENTORY DATA — starts pre-filled at the preview cap (3 per
+   location) so the demo is immediately explorable.
+--------------------------------------------------------- */
+const DEFAULT_INVENTORY = [
+  {food:'Chicken Breast', date:daysAgo(54), qty:1, protein:32, location:1},
+  {food:'Lean Beef Mince', date:daysAgo(33), qty:1, protein:26, location:1},
+  {food:'Turkey Mince', date:daysAgo(41), qty:1, protein:28, location:1},
+  {food:'Salmon Fillets', date:daysAgo(28), qty:1, protein:34, location:2},
+  {food:'Tuna Steaks', date:daysAgo(24), qty:1, protein:30, location:2},
+  {food:'Egg Whites Carton', date:daysAgo(49), qty:1, protein:16, location:2},
+  {food:'Cottage Cheese Tub', date:daysAgo(39), qty:1, protein:24, location:3},
+  {food:'Greek Yogurt Tub', date:daysAgo(9), qty:1, protein:20, location:3},
+  {food:'Protein Shake Bottles', date:daysAgo(18), qty:1, protein:25, location:3},
+  {food:'Fresh Eggs', date:daysAgo(5), qty:1, protein:6, location:4},
+  {food:'Skyr Yogurt Tub', date:daysAgo(2), qty:1, protein:19, location:4},
+  {food:'Chicken Breast (fresh)', date:daysAgo(1), qty:1, protein:32, location:4},
+];
+
+let inventoryData = [];
+let shoppingList = {}; // key "location::food" -> {food, location, protein, qtyNeeded}
+let consumedLog = {}; // ISO date -> total grams of protein logged via "Use" that day
+let nextItemId = 1;
+
+const LOCATIONS = [
+  {id:1, title:'Bay 1 — Power', quoteKey:'power', icon:'plate', plate:45},
+  {id:2, title:'Bay 2 — Discipline', quoteKey:'discipline', icon:'plate', plate:25},
+  {id:3, title:'Bay 3 — Recovery', quoteKey:'recovery', icon:'plate', plate:10},
+  {id:4, title:'Fridge', quoteKey:'fridge', icon:'fridge'},
+];
+
+const QUOTES = {
+  power: "Heavy weight doesn't care about your excuses.",
+  discipline: "Champions are built on the reps nobody sees.",
+  recovery: "Muscle isn't built lifting — it's built healing.",
+  fridge: "What's fresh today fuels tomorrow's lift.",
+};
+
+const MS_PER_DAY = 86400000;
+
+function todayISO(){
+  return new Date().toISOString().slice(0,10);
+}
+
+function daysAgo(n){
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0,10);
+}
+
+function freshnessOf(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  if(isNaN(d)) return {cls:'fresh', label:'Fresh', days:0};
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = Math.max(0, Math.round((today - d) / MS_PER_DAY));
+  if(days <= 20) return {cls:'fresh', label:'Fresh', days};
+  if(days <= 45) return {cls:'aging', label:'Aging', days};
+  return {cls:'stale', label:'Use Soon', days};
+}
+
+/* ---------------------------------------------------------
+   PERSISTENT STATE — localStorage is this app's only "memory"
+   mechanism (it's a static file, there's no server). Survives
+   reloads and closing the tab, scoped to this browser/device.
+--------------------------------------------------------- */
+const STORAGE_KEY_INVENTORY = 'proteinVaultFree.inventory';
+const STORAGE_KEY_SHOPPING = 'proteinVaultFree.shoppingList';
+const STORAGE_KEY_CONSUMED = 'proteinVaultFree.consumedLog';
+
+function withIds(items){
+  return items.map(it => ({...it, id: it.id ?? nextItemId++}));
+}
+
+function loadState(){
+  try{
+    const savedInv = localStorage.getItem(STORAGE_KEY_INVENTORY);
+    inventoryData = savedInv ? withIds(JSON.parse(savedInv)) : withIds(DEFAULT_INVENTORY);
+  }catch(e){
+    inventoryData = withIds(DEFAULT_INVENTORY);
+  }
+  try{
+    const savedList = localStorage.getItem(STORAGE_KEY_SHOPPING);
+    shoppingList = savedList ? JSON.parse(savedList) : {};
+  }catch(e){
+    shoppingList = {};
+  }
+  try{
+    const savedLog = localStorage.getItem(STORAGE_KEY_CONSUMED);
+    consumedLog = savedLog ? JSON.parse(savedLog) : {};
+  }catch(e){
+    consumedLog = {};
+  }
+}
+
+function saveState(){
+  localStorage.setItem(STORAGE_KEY_INVENTORY, JSON.stringify(inventoryData));
+  localStorage.setItem(STORAGE_KEY_SHOPPING, JSON.stringify(shoppingList));
+  localStorage.setItem(STORAGE_KEY_CONSUMED, JSON.stringify(consumedLog));
+}
+
+function markUsed(itemId){
+  const idx = inventoryData.findIndex(i => i.id === itemId);
+  if(idx === -1) return;
+  const item = inventoryData[idx];
+
+  const key = `${item.location}::${item.food}`;
+  if(!shoppingList[key]){
+    shoppingList[key] = {food: item.food, location: item.location, protein: item.protein, proteinEstimated: !!item.proteinEstimated, qtyNeeded: 0};
+  }
+  shoppingList[key].qtyNeeded += 1;
+
+  const today = todayISO();
+  consumedLog[today] = (consumedLog[today] || 0) + item.protein;
+
+  item.qty -= 1;
+  if(item.qty <= 0){
+    inventoryData.splice(idx, 1);
+  }
+
+  saveState();
+  renderLocations();
+  renderShoppingList();
+  playConfirm();
+}
+
+function restockItem(key){
+  delete shoppingList[key];
+  saveState();
+  renderShoppingList();
+}
+
+function locationTitle(id){
+  const loc = LOCATIONS.find(l => l.id === Number(id));
+  return loc ? loc.title : `Location ${id}`;
+}
+
+function renderShoppingList(){
+  const container = document.getElementById('shoppingListBody');
+  const entries = Object.entries(shoppingList);
+  if(entries.length === 0){
+    container.innerHTML = `<p class="empty-note">Nothing to restock yet — hit "Use" on an item as you cook with it.</p>`;
+    return;
+  }
+  container.innerHTML = entries.map(([key, e])=> `
+    <div class="inv-item">
+      <span class="inv-food">${escapeHTML(e.food)}</span>
+      <span class="inv-protein${e.proteinEstimated ? ' estimated' : ''}" title="${e.proteinEstimated ? 'Estimated from the food name' : 'Exact value from your CSV'}">${e.proteinEstimated ? '~' : ''}${e.protein}g</span>
+      <span class="inv-qty">need x${e.qtyNeeded}</span>
+      <span class="inv-date">${escapeHTML(locationTitle(e.location))}</span>
+      <button type="button" class="use-btn" data-restock-key="${encodeURIComponent(key)}">Restocked</button>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('[data-restock-key]').forEach(btn=>{
+    btn.addEventListener('click', ()=> restockItem(decodeURIComponent(btn.dataset.restockKey)));
+  });
+}
+
+function toShoppingCSV(){
+  const header = 'food,protein,qty_needed,location';
+  const lines = Object.values(shoppingList).map(e=>{
+    const food = /[",\n]/.test(e.food) ? '"' + e.food.replace(/"/g,'""') + '"' : e.food;
+    return [food, e.protein, e.qtyNeeded, locationTitle(e.location)].join(',');
+  });
+  return [header, ...lines].join('\n');
+}
+
+/* ---------------------------------------------------------
+   PROTEIN LOG — every "Use" click adds that item's protein to
+   today's total. Read-only, last 7 days.
+--------------------------------------------------------- */
+function renderProteinLog(){
+  const container = document.getElementById('proteinLogBody');
+  const badgeText = document.getElementById('proteinBadgeText');
+  const todayGrams = consumedLog[todayISO()] || 0;
+  if(badgeText) badgeText.textContent = `Today: ${todayGrams}g protein`;
+
+  const rows = [];
+  for(let i=0;i<7;i++){
+    const iso = daysAgo(i);
+    rows.push({iso, grams: consumedLog[iso] || 0, isToday: i===0});
+  }
+  const anyLogged = rows.some(r=> r.grams > 0);
+  if(!anyLogged){
+    container.innerHTML = `<p class="empty-note">Nothing logged yet — hit "Use" on an item to start tracking today's protein.</p>`;
+    return;
+  }
+  container.innerHTML = rows.map(r=> `
+    <div class="inv-item">
+      <span class="inv-food">${r.isToday ? 'Today' : escapeHTML(r.iso)}</span>
+      <span class="inv-protein">${r.grams}g</span>
+    </div>
+  `).join('');
+}
+
+/* ---------------------------------------------------------
+   EXPIRY ALERTS
+--------------------------------------------------------- */
+function computeExpiryAlerts(){
+  return inventoryData
+    .map(i=> ({...i, fresh: freshnessOf(i.date)}))
+    .filter(i=> i.fresh.cls === 'stale')
+    .sort((a,b)=> b.fresh.days - a.fresh.days);
+}
+
+function renderExpiryAlerts(){
+  const container = document.getElementById('expiryBody');
+  const btn = document.getElementById('expiryMealBtn');
+  const stale = computeExpiryAlerts();
+  if(stale.length === 0){
+    container.innerHTML = `<p class="empty-note">Nothing aging right now — everything's fresh or aging normally.</p>`;
+    if(btn) btn.disabled = true;
+    return;
+  }
+  container.innerHTML = stale.map(i=> `
+    <div class="inv-item">
+      <span class="fresh-dot stale" title="Use Soon"></span>
+      <span class="inv-food">${escapeHTML(i.food)}</span>
+      <span class="inv-date">${escapeHTML(locationTitle(i.location))}</span>
+      <span class="inv-qty">${i.fresh.days}d</span>
+    </div>
+  `).join('');
+  if(btn) btn.disabled = false;
+}
+
+/* ---------------------------------------------------------
+   ICON SVGs — barbell plate for freezer bays, fridge for the fridge
+--------------------------------------------------------- */
+function plateSVG(weight){
+  return `
+  <svg viewBox="0 0 200 200" data-plate="${weight}">
+    <circle cx="100" cy="100" r="92" fill="#2c2c2c" stroke="#4a4a4a" stroke-width="4"/>
+    <circle cx="100" cy="100" r="92" fill="none" stroke="#ff5a1f" stroke-width="3" opacity=".55"/>
+    <circle cx="100" cy="100" r="30" fill="#141414" stroke="#4a4a4a" stroke-width="3"/>
+    <circle cx="100" cy="46" r="7" fill="#4a4a4a"/>
+    <circle cx="100" cy="154" r="7" fill="#4a4a4a"/>
+    <circle cx="46" cy="100" r="7" fill="#4a4a4a"/>
+    <circle cx="154" cy="100" r="7" fill="#4a4a4a"/>
+    <text x="100" y="112" text-anchor="middle" font-family="Arial Black, Arial, sans-serif"
+          font-size="34" font-weight="900" fill="#f2f0ec">${weight}</text>
+  </svg>`;
+}
+
+function fridgeSVG(){
+  return `
+  <svg viewBox="0 0 200 200" data-fridge="1">
+    <circle cx="100" cy="100" r="92" fill="#2c2c2c" stroke="#4a4a4a" stroke-width="4"/>
+    <circle cx="100" cy="100" r="92" fill="none" stroke="#ff5a1f" stroke-width="3" opacity=".55"/>
+    <rect x="65" y="35" width="70" height="130" rx="8" fill="#141414" stroke="#4a4a4a" stroke-width="3"/>
+    <line x1="65" y1="80" x2="135" y2="80" stroke="#4a4a4a" stroke-width="3"/>
+    <rect x="123" y="46" width="6" height="18" rx="3" fill="#8a97a3"/>
+    <rect x="123" y="92" width="6" height="48" rx="3" fill="#8a97a3"/>
+  </svg>`;
+}
+
+function iconFor(loc){
+  return loc.icon === 'fridge' ? fridgeSVG() : plateSVG(loc.plate);
+}
+
+/* ---------------------------------------------------------
+   RENDER LOCATIONS (freezer bays + fridge)
+--------------------------------------------------------- */
+function renderLocations(){
+  const filter = (searchInput.value || '').trim().toLowerCase();
+  const grid = document.getElementById('bayGrid');
+  grid.innerHTML = LOCATIONS.map(loc=>{
+    const allItems = inventoryData.filter(i=> Number(i.location) === loc.id);
+    const items = filter ? allItems.filter(i=> i.food.toLowerCase().includes(filter)) : allItems;
+    let listHTML;
+    if(allItems.length === 0){
+      listHTML = `<p class="empty-note">Empty — upload a manifest to load it up.</p>`;
+    } else if(filter && items.length === 0){
+      listHTML = `<p class="empty-note">No matches here.</p>`;
+    } else {
+      listHTML = items.map(i=>{
+        const fresh = freshnessOf(i.date);
+        return `
+      <div class="inv-item">
+        <span class="fresh-dot ${fresh.cls}" title="${fresh.label}"></span>
+        <span class="inv-food">${escapeHTML(i.food)}</span>
+        <span class="inv-protein${i.proteinEstimated ? ' estimated' : ''}" title="${i.proteinEstimated ? 'Estimated from the food name — add a protein column to your CSV for an exact number' : 'Exact value from your CSV'}">${i.proteinEstimated ? '~' : ''}${i.protein}g</span>
+        <span class="inv-date">${escapeHTML(i.date)}</span>
+        <span class="inv-qty">x${i.qty}</span>
+        <button type="button" class="use-btn" data-use-id="${i.id}" title="Mark one used">Use</button>
+      </div>`;
+      }).join('');
+    }
+
+    const shownCount = filter ? items.length : allItems.length;
+    return `
+    <div class="bay" id="bay-${loc.id}" data-bay="${loc.id}">
+      <button type="button" class="bay-header" data-toggle="${loc.id}">
+        <div class="plate">${iconFor(loc)}</div>
+        <h3 class="bay-title">${loc.title}</h3>
+        <p class="bay-quote">"${escapeHTML(QUOTES[loc.quoteKey])}"</p>
+        <span class="count-badge">${shownCount} of ${MAX_ITEMS_PER_BAY} item${shownCount===1?'':'s'}</span>
+        <p class="expand-hint"><span class="chev">▾</span> tap to open</p>
+      </button>
+      <div class="body-wrapper">
+        <div class="body-inner">
+          <div class="bay-body">${listHTML}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  attachHandlers();
+  renderExpiryAlerts();
+  renderProteinLog();
+}
+
+function escapeHTML(str){
+  return String(str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function attachHandlers(){
+  document.querySelectorAll('.bay-header').forEach(header=>{
+    header.addEventListener('click', ()=>{
+      const bay = header.closest('.bay');
+      const wasExpanded = bay.classList.contains('expanded');
+      bay.classList.toggle('expanded');
+      if(!wasExpanded) playClank();
+    });
+  });
+  document.querySelectorAll('.use-btn').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      markUsed(Number(btn.dataset.useId));
+    });
+  });
+}
+
+/* ---------------------------------------------------------
+   FILE UPLOAD / DOWNLOAD — plain CSV, no external libraries.
+   Fully self-contained: no CDN dependency, works offline.
+--------------------------------------------------------- */
+const uploadBtn = document.getElementById('uploadBtn');
+const fileInput = document.getElementById('fileInput');
+const downloadBtn = document.getElementById('downloadBtn');
+const exportInventoryBtn = document.getElementById('exportInventoryBtn');
+const exportShoppingBtn = document.getElementById('exportShoppingBtn');
+const statusBadge = document.getElementById('statusBadge');
+const statusText = document.getElementById('statusText');
+const searchInput = document.getElementById('searchInput');
+
+uploadBtn.addEventListener('click', ()=> fileInput.click());
+searchInput.addEventListener('input', renderLocations);
+
+function toCSV(rows){
+  const header = 'food,date,qty,protein,location';
+  const lines = rows.map(r=> [r.food, r.date, r.qty, r.protein, r.location].map(v=>{
+    const s = String(v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  }).join(','));
+  return [header, ...lines].join('\n');
+}
+
+function parseCSV(text){
+  const lines = text.split(/\r?\n/).filter(l=> l.trim().length);
+  if(lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h=> h.trim().toLowerCase());
+  return lines.slice(1).map(line=>{
+    const cells = line.split(',').map(c=> c.trim());
+    const row = {};
+    headers.forEach((h,i)=> row[h] = cells[i]);
+    return row;
+  });
+}
+
+downloadBtn.addEventListener('click', ()=>{
+  const rows = [
+    {food:'Chicken Breast', date:daysAgo(10), qty:1, protein:'', location:1},
+    {food:'Salmon Fillets', date:daysAgo(5), qty:1, protein:'', location:2},
+    {food:'Greek Yogurt Tub', date:daysAgo(2), qty:1, protein:20, location:3},
+  ];
+  const blob = new Blob([toCSV(rows)], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'protein_vault_free_template.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  setStatus('Template downloaded — check your Downloads folder', false);
+  playConfirm();
+});
+
+exportInventoryBtn.addEventListener('click', ()=>{
+  if(inventoryData.length === 0){
+    setStatus('Inventory is empty — nothing to export.', true);
+    playError();
+    return;
+  }
+  const blob = new Blob([toCSV(inventoryData)], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'protein_vault_free_inventory.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  setStatus(`Inventory exported (${inventoryData.length} items) — check your Downloads folder`, false);
+  playConfirm();
+});
+
+exportShoppingBtn.addEventListener('click', ()=>{
+  const count = Object.keys(shoppingList).length;
+  if(count === 0){
+    setStatus('Shopping list is empty — nothing to export.', true);
+    playError();
+    return;
+  }
+  const blob = new Blob([toShoppingCSV()], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'protein_vault_free_shopping_list.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  setStatus(`Shopping list exported (${count} item${count===1?'':'s'}) — check your Downloads folder`, false);
+  playConfirm();
+});
+
+function setStatus(text, isError){
+  statusText.textContent = text;
+  statusBadge.classList.toggle('error', !!isError);
+}
+
+function normalizeLocation(val){
+  const m = String(val).match(/\d/);
+  return m ? Number(m[0]) : null;
+}
+
+function parseRows(rawRows){
+  const validIds = LOCATIONS.map(l=> l.id);
+  const normalized = rawRows.map(r=>{
+    const food = r.food;
+    const date = r.date ?? '';
+    // FREE PREVIEW: qty is always forced to 1, regardless of what the
+    // CSV says — the paid version treats qty as a literal count; this
+    // preview deliberately doesn't, to keep it a taste rather than a
+    // usable bulk-stock tool.
+    const qty = 1;
+    const givenProtein = Number(r.protein ?? 0) || 0;
+    const proteinEstimated = givenProtein <= 0;
+    const protein = proteinEstimated ? estimateProtein(food) : givenProtein;
+    const location = normalizeLocation(r.location ?? r.freezer ?? '');
+    return {food, date: String(date), qty, protein, proteinEstimated, location};
+  }).filter(r=> r.food && validIds.includes(r.location));
+
+  if(normalized.length === 0){
+    throw new Error('No valid rows found — check food/date/qty/location columns (protein is optional).');
+  }
+  return normalized;
+}
+
+function handleCSV(text, fileName){
+  try{
+    const rawRows = parseCSV(text);
+    const newItems = parseRows(rawRows);
+
+    let added = 0, restocked = 0, blocked = 0;
+    newItems.forEach(item=>{
+      const existing = inventoryData.find(i=>
+        i.food === item.food && i.location === item.location && i.date === item.date
+      );
+      if(existing){
+        // FREE PREVIEW: qty stays at 1 rather than combining, so repeated
+        // uploads can't be used to build up real stock past the cap.
+        restocked++;
+        return;
+      }
+      const currentCount = inventoryData.filter(i=> i.location === item.location).length;
+      if(currentCount >= MAX_ITEMS_PER_BAY){
+        blocked++;
+        return;
+      }
+      inventoryData.push({...item, id: nextItemId++});
+      added++;
+    });
+
+    saveState();
+    renderLocations();
+    const parts = [];
+    if(added) parts.push(`${added} new item${added===1?'':'s'} added`);
+    if(restocked) parts.push(`${restocked} already tracked`);
+    if(blocked) parts.push(`${blocked} skipped — free preview caps out at ${MAX_ITEMS_PER_BAY} items per bay`);
+    setStatus(`${parts.join(', ')} from ${fileName}`, blocked > 0 && added === 0);
+    if(blocked > 0 && added === 0){
+      playError();
+    } else {
+      playConfirm();
+    }
+  }catch(err){
+    setStatus(`Upload failed: ${err.message}`, true);
+    playError();
+  }
+}
+
+fileInput.addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt)=> handleCSV(evt.target.result, file.name);
+  reader.onerror = ()=>{
+    setStatus('Upload failed: could not read file', true);
+    playError();
+  };
+  reader.readAsText(file);
+  fileInput.value = '';
+});
+
+/* ---------------------------------------------------------
+   MEAL BUILDER — favors highest-protein items on hand
+--------------------------------------------------------- */
+const GOAL_COPY = {
+  Bulk: "Stacked for a calorie surplus — eat big, lift big.",
+  Maintain: "Balanced protein to hold the line.",
+  Cut: "Lean picks — protein first, calories second.",
+};
+const GOAL_ITEM_COUNT = {Bulk: 4, Maintain: 3, Cut: 2};
+const GOAL_PROTEIN_TARGET = {Bulk: 250, Maintain: 180, Cut: 150};
+
+function renderMealFromPool(pool, goal, servingsVal, locLabel){
+  const output = document.getElementById('mealOutput');
+
+  if(pool.length === 0){
+    document.getElementById('mealItems').innerHTML = `<li>No stock there yet.</li>`;
+    document.getElementById('mealMeta').innerHTML = '';
+    document.getElementById('mealFlavor').innerHTML = 'Upload some inventory first.';
+    output.classList.add('show');
+    output.scrollIntoView({behavior:'smooth', block:'center'});
+    playError();
+    return;
+  }
+
+  const n = GOAL_ITEM_COUNT[goal] || 3;
+  const picks = [...pool].sort((a,b)=> b.protein - a.protein).slice(0, Math.min(n, pool.length));
+
+  const picksWithQty = picks.map(p=>{
+    const suggestedUnits = Math.max(1, Math.min(p.qty, servingsVal));
+    const proteinForSuggested = suggestedUnits * p.protein;
+    return {...p, suggestedUnits, proteinForSuggested};
+  });
+  const totalProtein = picksWithQty.reduce((sum,p)=> sum + p.proteinForSuggested, 0);
+  const target = GOAL_PROTEIN_TARGET[goal];
+  const shortfall = target ? target - totalProtein : null;
+
+  document.getElementById('mealItems').innerHTML = picksWithQty.map(p=>
+    `<li>${escapeHTML(p.food)} <span class="qty-hint">${p.suggestedUnits} of ${p.qty}</span> <span class="p">${p.proteinForSuggested}g</span></li>`
+  ).join('');
+
+  document.getElementById('mealMeta').innerHTML = `
+    <span>${goal}</span>
+    <span>${servingsVal} serving${servingsVal===1?'':'s'}</span>
+    <span>${totalProtein}g protein total</span>
+    <span>${escapeHTML(locLabel)}</span>
+  `;
+
+  const flavorBase = GOAL_COPY[goal] || '';
+  const flavorEl = document.getElementById('mealFlavor');
+  if(shortfall !== null && shortfall > 0){
+    flavorEl.innerHTML = `${escapeHTML(flavorBase)}<br><span class="shortfall">Short ${shortfall}g of a typical ${target}g/day ${goal.toLowerCase()} target — the full version tracks unlimited stock so this gap is easier to close.</span>`;
+  } else {
+    flavorEl.innerHTML = escapeHTML(flavorBase);
+  }
+
+  output.classList.remove('show');
+  void output.offsetWidth;
+  output.classList.add('show');
+  output.scrollIntoView({behavior:'smooth', block:'center'});
+  playConfirm();
+}
+
+function buildMeal(){
+  const locVal = document.getElementById('baySelect').value;
+  const goal = document.getElementById('goalSelect').value;
+  const servingsVal = Number(document.getElementById('servingsSelect').value);
+
+  const pool = locVal === 'all'
+    ? inventoryData
+    : inventoryData.filter(i=> Number(i.location) === Number(locVal));
+
+  renderMealFromPool(pool, goal, servingsVal, locVal === 'all' ? 'All Locations' : locationTitle(locVal));
+}
+
+document.getElementById('buildMealBtn').addEventListener('click', buildMeal);
+
+document.getElementById('expiryMealBtn').addEventListener('click', ()=>{
+  const stale = computeExpiryAlerts();
+  const goal = document.getElementById('goalSelect').value;
+  const servingsVal = Number(document.getElementById('servingsSelect').value);
+  renderMealFromPool(stale, goal, servingsVal, 'Items Aging Soon');
+});
+
+/* ---------------------------------------------------------
+   INIT
+--------------------------------------------------------- */
+loadState();
+renderLocations();
+renderShoppingList();
+</script>
+</body>
+</html>
